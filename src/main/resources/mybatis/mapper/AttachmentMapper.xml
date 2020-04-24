@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shang.news.mapper.AttachmentMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.shang.news.entities.Attachment">
+        <id column="id" property="id" />
+        <result column="file_name" property="fileName" />
+        <!-- <result column="file_path" property="filePath" /> -->
+        <result column="attachment_type" property="attachmentType" />
+        <result column="businesskey" property="businesskey" />
+        <result column="createtime" property="createtime" />
+        <result column="updatetime" property="updatetime" />
+        <result column="creater" property="creater" />
+        <result column="updater" property="updater" />
+        <result property="url" column="filepath"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, file_name, file_path, attachment_type, businesskey, createtime, updatetime, creater, updater, delete_flag, uploaded
+    </sql>
+
+	<select id="getAttachmentPics" parameterType="Map" resultMap="BaseResultMap">
+		select a.*, concat(aset.basepath, a.file_path, '/', a.file_name) as filepath from news_attachment a, news_attachment_setting aset where aset.companyid = #{companyId} and a.businesskey = #{businesskey} and uploaded = 1 and a.delete_flag = 1
+	</select>
+</mapper>

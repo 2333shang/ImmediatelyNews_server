@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shang.news.mapper.ContentMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.shang.news.entities.Content">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="author_id" property="authorId" />
+        <result column="author_name" property="authorName" />
+        <result column="sendtime" property="sendtime" />
+        <result column="content" property="content" />
+        <result column="createtime" property="createtime" />
+        <result column="updatetime" property="updatetime" />
+        <result column="creater" property="creater" />
+        <result column="updater" property="updater" />
+        <result column="company_id" property="companyId" />
+        <result column="company_name" property="companyName" />
+        <result column="news_type" property="newsType" />
+        <result column="apply_status" property="applyStatus" />
+        <association property="user" javaType="com.shang.news.entities.User" select="com.shang.news.mapper.UserMapper.selectUserById" column="author_id">
+        </association>
+        <collection property="pics" column="{businesskey = id, companyId = company_id}" select="com.shang.news.mapper.AttachmentMapper.getAttachmentPics" ofType="com.shang.news.entities.Attachment">
+        </collection>
+    </resultMap>
+
+    <!-- 按照公司编号来获取对应的新闻 -->
+	<select id="selectContentByCompanyId" parameterType="String" resultMap="BaseResultMap">
+		select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId}
+		<if test="newsType == 0 || newsType == 1">
+			and c.news_type = #{newsType}
+		</if>
+		<if test="history == 0">
+			and c.sendtime &gt;= date_format(now(),'%Y-%m-%d')
+		</if>
+		 order by c.sendtime desc, c.id desc limit 0, 10
+	</select>
+	
+	<!-- 按照公司编号来获取加载更多的新闻  -->
+	<select id="addMore" parameterType="String" resultMap="BaseResultMap">
+		select t.* from ((select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId}
+		<if test="newsType == 0 || newsType == 1">
+			and c.news_type = #{newsType}
+		</if>
+		and c.sendtime = (select nc.sendtime from news_content nc where nc.id = #{newsId}) and c.id &lt; #{newsId}
+		<if test="history == 0">
+			and c.sendtime &gt;= date_format(now(),'%Y-%m-%d')
+		</if>
+		order by c.sendtime desc, c.id desc)
+		union all
+		(select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId}
+		<if test="newsType == 0 || newsType == 1">
+			and c.news_type = #{newsType}
+		</if>
+		and c.sendtime &lt; (select nc.sendtime from news_content nc where nc.id = #{newsId})
+		<if test="history == 0">
+			and c.sendtime &gt;= date_format(now(),'%Y-%m-%d')
+		</if>
+		order by c.sendtime desc, c.id desc)) t order by t.sendtime desc, t.id desc limit 0, 10
+		<!-- select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId} 
+		<if test="newsType == 0 || newsType == 1">
+			and c.news_type = #{newsType}
+		</if>
+		and c.sendtime &lt;= (select nc.sendtime from news_content nc where nc.id = #{newsId}) and c.id != #{newsId} 
+		<if test="history == 0">
+			and c.sendtime &gt;= date_format(now(),'%Y-%m-%d')
+		</if>
+		order by c.sendtime desc limit 0, 10 -->
+	</select>
+	
+	<!-- 按照发布顺序来获取所有的视频 -->
+	<select id="getContent" resultMap="BaseResultMap">
+		select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} order by c.sendtime desc, c.id desc limit 0, 10
+	</select>
+	
+	<!-- 获取更多的视频 -->
+	<select id="selectMoreContent" resultMap="BaseResultMap">
+	select t.* from ((select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} and c.sendtime = (select nc.sendtime from news_content nc where nc.id = #{newsId}) and c.id &lt; #{newsId}  order by c.sendtime desc, c.id desc)
+	union all
+	(select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} and c.sendtime &lt; (select nc.sendtime from news_content nc where nc.id = #{newsId}) order by c.sendtime desc, c.id desc)) t order by t.sendtime desc, t.id desc limit 0, 10
+		<!-- select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} and c.sendtime &lt;= (select nc.sendtime from news_content nc where nc.id = #{newsId}) 
+		and c.id != #{newsId} order by c.sendtime desc limit 0, 10	 -->
+	</select>
+	
+	<!-- 根据随机获取的企业的编号，来获取企业下的新闻 文章-->
+	<select id="selectCompanyContent" resultMap="BaseResultMap">
+		select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = 0 and c.company_id = #{companyId} order by c.sendtime desc, c.id desc limit 0, 5
+	</select>
+	
+	<!-- 根据随机获取的企业的编号，来获取企业下的新闻视频 -->
+	<select id="selectCompanyContentVideo" resultMap="BaseResultMap">
+		select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = 1 and c.company_id = #{companyId} order by c.sendtime desc, c.id desc limit 0, 5
+	</select>
+	
+</mapper>

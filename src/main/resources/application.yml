@@ -1,0 +1,50 @@
+server:
+  port: 8080
+  tomcat:
+    uri-encoding: UTF-8
+  servlet:
+    context-path: /news
+#logging:
+#  level:
+#    com.shang.news: trace
+    
+mybatis-plus:
+  mapper-locations: classpath:mybatis/mapper/*.xml
+  config-location: classpath:mybatis/mybatis-config.xml
+  global-config:
+    db-config:
+      id-type: assign-uuid
+      table-underline: true
+      table-prefix: news_
+      logic-delete-field: deleteFlag
+      logic-delete-value: 0
+      logic-not-delete-value: 1
+
+spring:
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+#  datasource:
+#    username: root
+#    url: jdbc:mysql://localhost:3306/immediatelynews?useSSL=false&serverTimezone=Asia/Shanghai 
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    initialization-mode: always #允许使用类路径下sql文件来创建和初始化外部的数据库
+#    date-format: yyyy-MM-dd HH:mm:ss #格式化的日期格式    
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://116.62.234.70:3306/immediatelynews?useSSL=false&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    initialization-mode: always #允许使用类路径下sql文件来创建和初始化外部的数据库
+    date-format: yyyy-MM-dd HH:mm:ss #格式化的日期格式
+    hiddenmethod:
+      filter:
+        enabled: true

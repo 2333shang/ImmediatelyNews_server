@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shang.news.mapper.OrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.shang.news.entities.Order">
+        <id column="id" property="id" />
+        <result column="order_company" property="orderCompany" />
+        <result column="order_user" property="orderUser" />
+        <result column="order_time" property="orderTime" />
+        <result column="order_flag" property="orderFlag" />
+        <result column="createtime" property="createtime" />
+        <result column="updatetime" property="updatetime" />
+    </resultMap>
+    
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMapWithCompany" type="com.shang.news.entities.Order">
+        <id column="id" property="id" />
+        <result column="order_company" property="orderCompany" />
+        <result column="order_user" property="orderUser" />
+        <result column="order_time" property="orderTime" />
+        <result column="order_flag" property="orderFlag" />
+        <result column="createtime" property="createtime" />
+        <result column="updatetime" property="updatetime" />
+        <association property="company" javaType="com.shang.news.entities.Company">
+	        <result column="company_name" property="companyName" />
+	        <result column="parent_id" property="parentId" />
+	        <result column="ccreatetime" property="createtime" />
+	        <!-- <result column="updatetime" property="updatetime" /> -->
+	        <result column="ccreater" property="creater" />
+	        <!-- <result column="updater" property="updater" /> -->
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, order_company, order_user, order_time, order_flag, createtime, updatetime
+    </sql>
+
+	<!-- 获取登录用户所关注的公司 -->
+	<select id="getOrderCompany" parameterType="String" resultMap="BaseResultMapWithCompany">
+		select o.*, c.company_name,c.creater as ccreater,c.createtime as ccreatetime from news_order o, news_company c where o.order_user = #{userId} and o.order_company = c.id and o.order_flag = 1 order by order_time desc, o.id desc limit 0, 10
+	</select>
+	
+	<!-- 查看用户是否关注过该公司 -->
+	<select id="checkIfOrdered" parameterType="Map" resultMap="BaseResultMap">
+		select id, order_company, order_user, order_time, order_flag, createtime, updatetime from news_order where order_user = #{userId} and order_company = #{companyId}
+	</select>
+	
+	<!-- 查看用户更多关注的公司 -->
+	<select id="moreorder" parameterType="Map" resultMap="BaseResultMapWithCompany">
+	select m.* from ((select o.*, c.company_name,c.creater as ccreater,c.createtime as ccreatetime  from news_order o, news_company c where o.order_user = #{userId} and o.order_company = c.id and o.order_flag = 1 and o.order_time =(select no.order_time from news_order no where no.id = #{orderId}) and o.id &lt; #{orderId} order by o.order_time desc, o.id desc)
+	union all
+	(select o.*, c.company_name,c.creater as ccreater,c.createtime as ccreatetime from news_order o, news_company c where o.order_user = #{userId} and o.order_company = c.id and o.order_flag = 1 and o.order_time &lt;(select no.order_time from news_order no where no.id = #{orderId}) order by o.order_time desc, o.id desc)) m order by m.order_time desc, m.id desc limit 0, 10
+		<!-- select o.*, c.* from news_order o, news_company c where o.order_user = #{userId} and o.order_company = c.id and o.order_flag = 1 and o.order_time &lt;=(select no.order_time from news_order no where no.id = #{orderId})
+		and o.id != #{orderId} order by o.order_time desc limit 0, 10 -->
+	</select>
+	
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shang.news.mapper.CompanyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.shang.news.entities.Company">
+        <id column="id" property="id" />
+        <result column="company_name" property="companyName" />
+        <result column="parent_id" property="parentId" />
+        <result column="createtime" property="createtime" />
+        <result column="updatetime" property="updatetime" />
+        <result column="creater" property="creater" />
+        <result column="updater" property="updater" />
+        <result column="delete_flag" property="deleteFlag" />
+        <association property="order" javaType="com.shang.news.entities.Order">
+        	<result property="orderFlag" column="order_flag"/>
+        </association>
+        <collection property="content" ofType="com.shang.news.entities.Content" column="{companyId=id}" select="com.shang.news.mapper.ContentMapper.selectCompanyContent">
+        </collection>
+        <collection property="videoContent" ofType="com.shang.news.entities.Content" column="{companyId=id}" select="com.shang.news.mapper.ContentMapper.selectCompanyContentVideo">
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, company_name, parent_id, createtime, updatetime, creater, updater, delete_flag
+    </sql>
+
+	<!-- 获取随机的2个公司以及公司下的新闻 -->
+	<select id="getRandCompany" resultMap="BaseResultMap">
+		select <include refid="Base_Column_List"></include> from news_company ORDER BY rand() LIMIT 2
+	</select>
+	
+	<!-- 获取所有的公司 -->
+	<select id="selectAllCompany" resultMap="BaseResultMap">
+		select c.id, c.company_name, c.parent_id, c.createtime, c.updatetime, c.creater, c.updater, o.order_flag from news_company c left join news_order o on c.id = o.order_company and o.order_user = #{userId} order by c.createtime desc, c.id desc limit 0, 10
+	</select>
+	
+	<!-- 获取更多的公司 -->
+	<select id="selectMoreCompany" resultMap="BaseResultMap">
+		select m.* from((select c.id, c.company_name, c.parent_id, c.createtime, c.updatetime, c.creater, c.updater, o.order_flag from news_company c left join news_order o on c.id = o.order_company and o.order_user = #{userId} where c.createtime = (select nc.createtime from news_company nc where nc.id = #{companyId}) and c.id &lt; #{companyId} order by c.createtime desc, c.id desc)
+		union all
+		(select c.id, c.company_name, c.parent_id, c.createtime, c.updatetime, c.creater, c.updater, o.order_flag from news_company c left join news_order o on c.id = o.order_company and o.order_user = #{userId} where c.createtime &lt; (select nc.createtime from news_company nc where nc.id = #{companyId}) order by c.createtime desc, c.id desc)) m order by m.createtime desc, m.id desc limit 0, 10
+		<!-- select c.id, c.company_name, c.parent_id, c.createtime, c.updatetime, c.creater, c.updater, o.order_flag from news_company c left join news_order o on c.id = o.order_company and o.order_user = #{userId}
+		and c.createtime &gt;= (select nc.createtime from news_company nc where nc.id = #{companyId}) and c.id != #{companyId}  order by c.createtime asc limit 0, 10 -->
+	</select>
+	
+</mapper>

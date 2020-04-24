@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shang.news.mapper.TopMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.shang.news.entities.Top">
+        <id column="id" property="id" />
+        <result column="news_id" property="newsId" />
+        <result column="resousel" property="resousel" />
+        <result column="top_time" property="topTime" />
+        <result column="createtime" property="createtime" />
+        <result column="updatetime" property="updatetime" />
+        <result column="creater" property="creater" />
+        <result column="updater" property="updater" />
+        <result column="apply_status" property="applyStatus" />
+        <association property="content" javaType="com.shang.news.entities.Content">
+	        <result column="title" property="title" />
+	        <result column="author_id" property="authorId" />
+	        <result column="author_name" property="authorName" />
+	        <result column="sendtime" property="sendtime" />
+	        <result column="content" property="content" />
+	        <result column="news_type" property="newsType" />
+	        <result column="company_id" property="companyId" />
+	        <result column="company_name" property="companyName" />
+	        <association property="user" javaType="com.shang.news.entities.User" select="com.shang.news.mapper.UserMapper.selectUserById" column="author_id">
+        	</association>
+	        <collection property="pics" column="{businesskey = businesskey, companyId = company_id}" select="com.shang.news.mapper.AttachmentMapper.getAttachmentPics" ofType="com.shang.news.entities.Attachment">
+	        </collection>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, news_id, resousel, top_time, createtime, updatetime, creater, updater, apply_status
+    </sql>
+
+	<select id="getTopNews" resultMap="BaseResultMap" parameterType="String">
+		select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t 
+		left join news_content c on t.news_id = c.id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
+		where t.resousel = #{type} and t.apply_status = 2 <!-- and t.top_time &gt;= date_format(now(),'%Y-%m-%d') --> order by t.top_time desc, t.id desc
+		<if test="type == 1">
+			limit 0, 5
+		</if>
+		<if test="type == 0">
+			limit 0, 10
+		</if>
+	</select>
+	
+	<select id="addMoreTopNews" parameterType="String" resultMap="BaseResultMap">
+		select m.* from ((select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.resousel = '0' and t.apply_status = 2 and t.top_time = (select tt.top_time from news_top tt where tt.id = #{topId}) and t.id &lt; #{topId} order by t.top_time desc,t.id desc)
+		union all
+		(select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
+		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
+		where t.resousel = '0' and t.apply_status = 2 and t.top_time &lt; (select tt.top_time from news_top tt where tt.id = #{topId}) order by t.top_time desc,t.id desc)) m order by m.top_time desc, m.id desc limit 0, 10
+		<!-- select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
+		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
+		where t.resousel = 0 and t.apply_status = 2 and t.top_time &lt;= (select top_time from news_top where id = #{topId}) and t.id != #{topId} order by t.top_time desc limit 0,10 -->
+	</select>
+	
+	<!-- 得到待处理的首页申请 -->
+	<select id="getTodoTop" parameterType="String" resultMap="BaseResultMap">
+		select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
+		 left join news_content c on t.news_id = c.id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
+		where t.apply_status = 1 and t.createtime &gt;= date_format(now(),'%Y-%m-%d') order by t.createtime desc, t.id desc limit 0, 10
+	</select>
+	
+	<!-- 得到更多待处理的首页申请 -->
+	<select id="getMoreTodoTop" parameterType="String" resultMap="BaseResultMap">
+		select m.* from((select t.id, t.news_id, t.resousel, t.top_time, t.apply_status,t.createtime, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.apply_status = 1 and t.createtime = (select createtime from news_top where id = #{topId}) and t.id &lt;#{topId} order by t.createtime desc)
+		union all
+		(select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, t.createtime, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
+		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.apply_status = 1 and t.createtime &lt; (select createtime from news_top where id = #{topId}) order by t.createtime desc)) m order by m.createtime desc, m.id desc limit 0, 10
+		<!-- select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
+		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
+		where t.apply_status = 1 and t.createtime &lt;= (select createtime from news_top where id = #{topId}) and t.id != #{topId} order by t.createtime desc limit 0,10 -->
+	</select>
+	
+	<!-- 得到历史的首页申请 -->
+	<select id="getHistoryTop" parameterType="String" resultMap="BaseResultMap">
+		select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
+		 left join news_content c on t.news_id = c.id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
+		where t.apply_status = #{applyStatus} order by t.top_time desc, t.id desc limit 0, 10
+	</select>
+	
+	<!-- 得到更多历史的首页申请 -->
+	<select id="getMoreHistoryTop" parameterType="String" resultMap="BaseResultMap">
+		select m.* from((select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.apply_status = #{applyStatus} and t.top_time = (select top_time from news_top where id = #{topId}) and t.id &lt; #{topId} order by t.top_time desc, t.id desc)
+		union all
+		(select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
+		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
+		where t.apply_status = #{applyStatus} and t.top_time &lt; (select top_time from news_top where id = #{topId}) order by t.top_time desc)) m order by m.top_time desc, m.id desc limit 0, 10
+		<!-- select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
+		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
+		where t.apply_status = #{applyStatus} and t.top_time &lt;= (select top_time from news_top where id = #{topId}) and t.id != #{topId} order by t.top_time desc limit 0,10 -->
+	</select>
+</mapper>
