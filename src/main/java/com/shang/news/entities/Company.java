@@ -77,6 +77,9 @@ public class Company extends Model<Company> {
     
     @TableField(exist = false)
     private Order order;
+    
+    @TableField(exist = false)
+    private Attachment headIcon;
 
     public String getId() {
         return id;
@@ -171,6 +174,14 @@ public class Company extends Model<Company> {
 		this.order = order;
 	}
 
+	public Attachment getHeadIcon() {
+		return headIcon;
+	}
+
+	public void setHeadIcon(Attachment headIcon) {
+		this.headIcon = headIcon;
+	}
+
 	@Override
     public String toString() {
         return "Company{" +
@@ -184,6 +195,7 @@ public class Company extends Model<Company> {
         ", deleteFlag=" + deleteFlag +
         ", content=" + content +
         ", videoContent=" + videoContent +
+        ", headIcon=" + headIcon +
         "}";
     }
 }

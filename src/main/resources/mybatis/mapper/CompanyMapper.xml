@@ -15,6 +15,7 @@
         <association property="order" javaType="com.shang.news.entities.Order">
         	<result property="orderFlag" column="order_flag"/>
         </association>
+         <association property="headIcon" javaType="com.shang.news.entities.Attachment" select="com.shang.news.mapper.AttachmentMapper.getAttachmentPics" column="{businesskey = id companyId = id}" ></association>
         <collection property="content" ofType="com.shang.news.entities.Content" column="{companyId=id}" select="com.shang.news.mapper.ContentMapper.selectCompanyContent">
         </collection>
         <collection property="videoContent" ofType="com.shang.news.entities.Content" column="{companyId=id}" select="com.shang.news.mapper.ContentMapper.selectCompanyContentVideo">

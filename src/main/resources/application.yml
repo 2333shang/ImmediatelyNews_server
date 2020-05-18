@@ -1,5 +1,6 @@
 server:
-  port: 8080
+  port: 8088
+#  port: 8080
   tomcat:
     uri-encoding: UTF-8
   servlet:
@@ -38,10 +39,17 @@ spring:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #    initialization-mode: always #允许使用类路径下sql文件来创建和初始化外部的数据库
 #    date-format: yyyy-MM-dd HH:mm:ss #格式化的日期格式    
+#  datasource:
+#    username: root
+#    password: 123456
+#    url: jdbc:mysql://116.62.234.70:3306/immediatelynews?useSSL=false&serverTimezone=Asia/Shanghai
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    initialization-mode: always #允许使用类路径下sql文件来创建和初始化外部的数据库
+#    date-format: yyyy-MM-dd HH:mm:ss #格式化的日期格式
   datasource:
-    username: root
-    password: 123456
-    url: jdbc:mysql://116.62.234.70:3306/immediatelynews?useSSL=false&serverTimezone=Asia/Shanghai
+    username: cxm
+    password: 1998.cxm
+    url: jdbc:mysql://182.92.73.120:3306/immediatelynews?useSSL=false&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver
     initialization-mode: always #允许使用类路径下sql文件来创建和初始化外部的数据库
     date-format: yyyy-MM-dd HH:mm:ss #格式化的日期格式

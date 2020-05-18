@@ -37,8 +37,11 @@ public class ContentController {
 	}
 	
 	@RequestMapping("/owner")
-	public List<Content> owner(HttpSession session, String newsType, String history) {
-		String companyId = (String) session.getAttribute("company_id");
+	public List<Content> owner(HttpSession session, String companyId, String newsType, String history) {
+		//查看其它企业
+		if(StringUtils.isEmpty(companyId)) {
+			companyId = (String) session.getAttribute("company_id");
+		}
 		List<Content> content_list = contentService.selectContent(companyId, newsType, history);
 		return content_list;
 	}

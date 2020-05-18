@@ -26,7 +26,7 @@
 
     <!-- 按照公司编号来获取对应的新闻 -->
 	<select id="selectContentByCompanyId" parameterType="String" resultMap="BaseResultMap">
-		select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId}
+		select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId} and c.delete_flag = 1
 		<if test="newsType == 0 || newsType == 1">
 			and c.news_type = #{newsType}
 		</if>
@@ -38,7 +38,7 @@
 	
 	<!-- 按照公司编号来获取加载更多的新闻  -->
 	<select id="addMore" parameterType="String" resultMap="BaseResultMap">
-		select t.* from ((select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId}
+		select t.* from ((select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId} and c.delete_flag = 1
 		<if test="newsType == 0 || newsType == 1">
 			and c.news_type = #{newsType}
 		</if>
@@ -48,7 +48,7 @@
 		</if>
 		order by c.sendtime desc, c.id desc)
 		union all
-		(select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId}
+		(select c.*, u.username as author_name, t.apply_status, cm.company_name from news_content c left join news_user u on c.author_id = u.id left join news_top t on t.news_id = c.id left join news_company cm on cm.id = c.company_id where c.company_id = #{companyId} and c.delete_flag = 1
 		<if test="newsType == 0 || newsType == 1">
 			and c.news_type = #{newsType}
 		</if>
@@ -70,26 +70,26 @@
 	
 	<!-- 按照发布顺序来获取所有的视频 -->
 	<select id="getContent" resultMap="BaseResultMap">
-		select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} order by c.sendtime desc, c.id desc limit 0, 10
+		select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} and c.delete_flag = 1 order by c.sendtime desc, c.id desc limit 0, 10
 	</select>
 	
 	<!-- 获取更多的视频 -->
 	<select id="selectMoreContent" resultMap="BaseResultMap">
-	select t.* from ((select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} and c.sendtime = (select nc.sendtime from news_content nc where nc.id = #{newsId}) and c.id &lt; #{newsId}  order by c.sendtime desc, c.id desc)
+	select t.* from ((select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} and c.sendtime = (select nc.sendtime from news_content nc where nc.id = #{newsId}) and c.id &lt; #{newsId} and c.delete_flag = 1  order by c.sendtime desc, c.id desc)
 	union all
-	(select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} and c.sendtime &lt; (select nc.sendtime from news_content nc where nc.id = #{newsId}) order by c.sendtime desc, c.id desc)) t order by t.sendtime desc, t.id desc limit 0, 10
+	(select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} and c.sendtime &lt; (select nc.sendtime from news_content nc where nc.id = #{newsId}) and c.delete_flag = 1 order by c.sendtime desc, c.id desc)) t order by t.sendtime desc, t.id desc limit 0, 10
 		<!-- select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = #{newsType} and c.sendtime &lt;= (select nc.sendtime from news_content nc where nc.id = #{newsId}) 
 		and c.id != #{newsId} order by c.sendtime desc limit 0, 10	 -->
 	</select>
 	
 	<!-- 根据随机获取的企业的编号，来获取企业下的新闻 文章-->
 	<select id="selectCompanyContent" resultMap="BaseResultMap">
-		select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = 0 and c.company_id = #{companyId} order by c.sendtime desc, c.id desc limit 0, 5
+		select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = 0 and c.company_id = #{companyId} and c.delete_flag = 1 order by c.sendtime desc, c.id desc limit 0, 5
 	</select>
 	
 	<!-- 根据随机获取的企业的编号，来获取企业下的新闻视频 -->
 	<select id="selectCompanyContentVideo" resultMap="BaseResultMap">
-		select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = 1 and c.company_id = #{companyId} order by c.sendtime desc, c.id desc limit 0, 5
+		select c.*, u.username as author_name, cm.company_name from news_content c, news_user u, news_company cm where c.author_id = u.id and cm.id = c.company_id and c.news_type = 1 and c.company_id = #{companyId} and c.delete_flag = 1 order by c.sendtime desc, c.id desc limit 0, 5
 	</select>
 	
 </mapper>

@@ -51,7 +51,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 		Attachment selectOne3 = attachmentMapper.selectOne(queryWrapper3);
 		if(selectOne3 != null) {
 			Attachment headIcon = new Attachment();
-			headIcon.setUrl(FileUploadConstant.FILE_NET + FileUploadConstant.FILE_CONTEXT_PATH + FileUploadConstant.FILE_REAL_PATH + selectOne2.getBasepath() + selectOne3.getFilePath() + "/" + selectOne3.getFileName());
+			if(selectOne3.getFilePath() == null) {
+				headIcon.setUrl(FileUploadConstant.FILE_NET + FileUploadConstant.FILE_CONTEXT_PATH + FileUploadConstant.FILE_REAL_PATH + "/" + selectOne3.getFileName());
+			}else {
+				headIcon.setUrl(FileUploadConstant.FILE_NET + FileUploadConstant.FILE_CONTEXT_PATH + FileUploadConstant.FILE_REAL_PATH + selectOne2.getBasepath() + selectOne3.getFilePath() + "/" + selectOne3.getFileName());
+			}
 			selectOne.setHeadIcon(headIcon);
 		}
 		return selectOne;

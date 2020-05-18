@@ -22,6 +22,6 @@
     </sql>
 
 	<select id="getAttachmentPics" parameterType="Map" resultMap="BaseResultMap">
-		select a.*, concat(aset.basepath, a.file_path, '/', a.file_name) as filepath from news_attachment a, news_attachment_setting aset where aset.companyid = #{companyId} and a.businesskey = #{businesskey} and uploaded = 1 and a.delete_flag = 1
+		select a.*, concat(IF(a.file_path is null, "", aset.basepath), IFNULL(a.file_path, ""), '/', a.file_name) as filepath from news_attachment a, news_attachment_setting aset where aset.companyid = #{companyId} and a.businesskey = #{businesskey} and uploaded = 1 and a.delete_flag = 1
 	</select>
 </mapper>

@@ -49,7 +49,7 @@
     </sql>
     
     <select id="getCollectNews" parameterType="String" resultMap="BaseResultMapWithContent">
-    	select ct.id, ct.related_id, ct.relation_user, ct.collect_time, ct.createtime, ct.updatetime,c.title,c.content,c.sendtime,c.author_id,c.company_id,co.company_name,c.news_type, u.username as author_name from news_collect ct, news_content c, news_company co, news_user u where u.id = c.author_id and co.id = c.company_id and ct.related_id = c.id and ct.collect_flag = 1 and relation_user = #{userId} order by ct.collect_time desc, ct.id desc limit 0, 10
+    	select ct.id, ct.related_id, ct.relation_user, ct.collect_time, ct.createtime, ct.updatetime,c.title,c.content,c.sendtime,c.author_id,c.company_id,co.company_name,c.news_type, u.username as author_name from news_collect ct, news_content c, news_company co, news_user u where u.id = c.author_id and co.id = c.company_id and ct.related_id = c.id and ct.collect_flag = 1 and relation_user = #{userId} and c.delete_flag = 1 order by ct.collect_time desc, ct.id desc limit 0, 10
     </select>
     
     <select id="checkIfCollected" parameterType="Map" resultMap="BaseResultMap">
@@ -57,9 +57,9 @@
     </select>
     
     <select id="morecollects" parameterType="Map" resultMap="BaseResultMapWithContent">
-    	select m.* from((select ct.id, ct.related_id, ct.relation_user, ct.collect_time, ct.createtime, ct.updatetime,c.title,c.content,c.sendtime,c.author_id,c.company_id,co.company_name,c.news_type, u.username as author_name from news_collect ct, news_content c, news_company co, news_user u where u.id = c.author_id and co.id = c.company_id and ct.related_id = c.id and ct.collect_flag = 1 and relation_user = #{userId} and ct.collect_time =(select nc.collect_time from news_collect nc where nc.id = #{collectId}) and ct.id &lt; #{collectId}  order by ct.collect_time desc, ct.id desc)
+    	select m.* from((select ct.id, ct.related_id, ct.relation_user, ct.collect_time, ct.createtime, ct.updatetime,c.title,c.content,c.sendtime,c.author_id,c.company_id,co.company_name,c.news_type, u.username as author_name from news_collect ct, news_content c, news_company co, news_user u where u.id = c.author_id and co.id = c.company_id and ct.related_id = c.id and ct.collect_flag = 1 and relation_user = #{userId} and ct.collect_time =(select nc.collect_time from news_collect nc where nc.id = #{collectId}) and ct.id &lt; #{collectId} and c.delete_flag = 1 order by ct.collect_time desc, ct.id desc)
 		union all
-		(select ct.id, ct.related_id, ct.relation_user, ct.collect_time, ct.createtime, ct.updatetime,c.title,c.content,c.sendtime,c.author_id,c.company_id,co.company_name,c.news_type, u.username as authorName from news_collect ct, news_content c, news_company co, news_user u where u.id = ct.relation_user and co.id = c.company_id and ct.related_id = c.id and ct.collect_flag = 1 and relation_user = #{userId} and ct.collect_time &lt;(select nc.collect_time from news_collect nc where nc.id = #{collectId}) order by ct.collect_time desc, ct.id desc)) m order by m.collect_time desc, m.id desc limit 0, 10
+		(select ct.id, ct.related_id, ct.relation_user, ct.collect_time, ct.createtime, ct.updatetime,c.title,c.content,c.sendtime,c.author_id,c.company_id,co.company_name,c.news_type, u.username as authorName from news_collect ct, news_content c, news_company co, news_user u where u.id = ct.relation_user and co.id = c.company_id and ct.related_id = c.id and ct.collect_flag = 1 and relation_user = #{userId} and ct.collect_time &lt;(select nc.collect_time from news_collect nc where nc.id = #{collectId}) and c.delete_flag = 1 order by ct.collect_time desc, ct.id desc)) m order by m.collect_time desc, m.id desc limit 0, 10
     	<!-- select ct.id, ct.related_id, ct.relation_user, ct.collect_time, ct.createtime, ct.updatetime,c.* from news_collect ct, news_content c where ct.related_id = c.id and ct.collect_flag = 1 and relation_user = #{userId}
     	and ct.collect_time &lt;=(select nc.collect_time from news_collect nc where nc.id = #{collectId}) and ct.id != #{collectId}  order by ct.collect_time desc limit 0, 10 -->
     </select>

@@ -37,7 +37,7 @@
 	<select id="getTopNews" resultMap="BaseResultMap" parameterType="String">
 		select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t 
 		left join news_content c on t.news_id = c.id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
-		where t.resousel = #{type} and t.apply_status = 2 <!-- and t.top_time &gt;= date_format(now(),'%Y-%m-%d') --> order by t.top_time desc, t.id desc
+		where t.resousel = #{type} and t.apply_status = 2 <!-- and t.top_time &gt;= date_format(now(),'%Y-%m-%d') --> and c.delete_flag = 1 order by t.top_time desc, t.id desc
 		<if test="type == 1">
 			limit 0, 5
 		</if>
@@ -47,11 +47,11 @@
 	</select>
 	
 	<select id="addMoreTopNews" parameterType="String" resultMap="BaseResultMap">
-		select m.* from ((select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.resousel = '0' and t.apply_status = 2 and t.top_time = (select tt.top_time from news_top tt where tt.id = #{topId}) and t.id &lt; #{topId} order by t.top_time desc,t.id desc)
+		select m.* from ((select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.resousel = '0' and t.apply_status = 2 and t.top_time = (select tt.top_time from news_top tt where tt.id = #{topId}) and t.id &lt; #{topId} and c.delete_flag = 1 order by t.top_time desc,t.id desc)
 		union all
 		(select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
 		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
-		where t.resousel = '0' and t.apply_status = 2 and t.top_time &lt; (select tt.top_time from news_top tt where tt.id = #{topId}) order by t.top_time desc,t.id desc)) m order by m.top_time desc, m.id desc limit 0, 10
+		where t.resousel = '0' and t.apply_status = 2 and t.top_time &lt; (select tt.top_time from news_top tt where tt.id = #{topId}) and c.delete_flag = 1 order by t.top_time desc,t.id desc)) m order by m.top_time desc, m.id desc limit 0, 10
 		<!-- select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
 		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
 		where t.resousel = 0 and t.apply_status = 2 and t.top_time &lt;= (select top_time from news_top where id = #{topId}) and t.id != #{topId} order by t.top_time desc limit 0,10 -->
@@ -61,15 +61,15 @@
 	<select id="getTodoTop" parameterType="String" resultMap="BaseResultMap">
 		select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
 		 left join news_content c on t.news_id = c.id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
-		where t.apply_status = 1 and t.createtime &gt;= date_format(now(),'%Y-%m-%d') order by t.createtime desc, t.id desc limit 0, 10
+		where t.apply_status = 1 and t.createtime &gt;= date_format(now(),'%Y-%m-%d') and c.delete_flag = 1 order by t.createtime desc, t.id desc limit 0, 10
 	</select>
 	
 	<!-- 得到更多待处理的首页申请 -->
 	<select id="getMoreTodoTop" parameterType="String" resultMap="BaseResultMap">
-		select m.* from((select t.id, t.news_id, t.resousel, t.top_time, t.apply_status,t.createtime, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.apply_status = 1 and t.createtime = (select createtime from news_top where id = #{topId}) and t.id &lt;#{topId} order by t.createtime desc)
+		select m.* from((select t.id, t.news_id, t.resousel, t.top_time, t.apply_status,t.createtime, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.apply_status = 1 and t.createtime = (select createtime from news_top where id = #{topId}) and t.id &lt;#{topId} and c.delete_flag = 1 order by t.createtime desc)
 		union all
 		(select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, t.createtime, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
-		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.apply_status = 1 and t.createtime &lt; (select createtime from news_top where id = #{topId}) order by t.createtime desc)) m order by m.createtime desc, m.id desc limit 0, 10
+		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.apply_status = 1 and t.createtime &lt; (select createtime from news_top where id = #{topId}) and c.delete_flag = 1 order by t.createtime desc)) m order by m.createtime desc, m.id desc limit 0, 10
 		<!-- select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
 		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
 		where t.apply_status = 1 and t.createtime &lt;= (select createtime from news_top where id = #{topId}) and t.id != #{topId} order by t.createtime desc limit 0,10 -->
@@ -79,16 +79,16 @@
 	<select id="getHistoryTop" parameterType="String" resultMap="BaseResultMap">
 		select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
 		 left join news_content c on t.news_id = c.id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
-		where t.apply_status = #{applyStatus} order by t.top_time desc, t.id desc limit 0, 10
+		where t.apply_status = #{applyStatus} and c.delete_flag = 1 order by t.top_time desc, t.id desc limit 0, 10
 	</select>
 	
 	<!-- 得到更多历史的首页申请 -->
 	<select id="getMoreHistoryTop" parameterType="String" resultMap="BaseResultMap">
-		select m.* from((select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.apply_status = #{applyStatus} and t.top_time = (select top_time from news_top where id = #{topId}) and t.id &lt; #{topId} order by t.top_time desc, t.id desc)
+		select m.* from((select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id where t.apply_status = #{applyStatus} and t.top_time = (select top_time from news_top where id = #{topId}) and t.id &lt; #{topId} and c.delete_flag = 1 order by t.top_time desc, t.id desc)
 		union all
 		(select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
 		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
-		where t.apply_status = #{applyStatus} and t.top_time &lt; (select top_time from news_top where id = #{topId}) order by t.top_time desc)) m order by m.top_time desc, m.id desc limit 0, 10
+		where t.apply_status = #{applyStatus} and t.top_time &lt; (select top_time from news_top where id = #{topId}) and c.delete_flag = 1 order by t.top_time desc)) m order by m.top_time desc, m.id desc limit 0, 10
 		<!-- select t.id, t.news_id, t.resousel, t.top_time, t.apply_status, c.id as businesskey, c.title, c.author_id, c.company_id, comp.company_name, c.sendtime, c.content, c.news_type, u.username as author_name from news_top t
 		 left join news_content c on c.id = t.news_id left join news_user u on u.id = c.author_id left join news_company comp on comp.id = c.company_id
 		where t.apply_status = #{applyStatus} and t.top_time &lt;= (select top_time from news_top where id = #{topId}) and t.id != #{topId} order by t.top_time desc limit 0,10 -->

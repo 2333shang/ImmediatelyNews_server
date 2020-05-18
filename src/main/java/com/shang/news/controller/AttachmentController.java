@@ -55,4 +55,10 @@ public class AttachmentController {
 		}
 		return attachment;
 	}
+	
+//	@RequestMapping("/adda")
+//	public String adda(Attachment a) {
+//		attachmentService.save(a);
+//		return "add";
+//	}
 }
